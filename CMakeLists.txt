@@ -3,14 +3,17 @@ project(clew)
 option( BUILD_TESTS "Build test program." ON )
 option( BUILD_SHARED_LIBRARY "Shared library, rather than static library." OFF )
 option( INSTALL_CL_HEADER "Install cl.h / opencl.h  proxy headers to ease compilation of software not aware of CLEW" OFF )
+option( ADD_RPATH "Set rpath." OFF)
 
 cmake_minimum_required (VERSION 2.6)
 if (NOT CMAKE_VERSION VERSION_LESS 2.8.4)
     cmake_policy (SET CMP0017 NEW)
 endif()
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if(ADD_RPATH)
+  SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
 SET(CMAKE_MACOSX_RPATH TRUE)
 

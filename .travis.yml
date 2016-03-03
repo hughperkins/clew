@@ -12,7 +12,7 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake .. -DBUILD_TESTS=ON -DBUILD_SHARED_LIBRARY=ON -DCMAKE_INSTALL_PREFIX=../dist
+  - cmake .. -DBUILD_TESTS=ON -DBUILD_SHARED_LIBRARY=ON -DCMAKE_INSTALL_PREFIX=../dist -DADD_RPATH=ON
   - make -j 4
   - make install
   - # source ../dist/bin/easycl_activate.sh
