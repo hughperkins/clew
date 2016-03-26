@@ -179,6 +179,9 @@ int clewInit()
     module = CLEW_DYNLIB_OPEN("OpenCL.dll");
     if(module == 0) module = CLEW_DYNLIB_OPEN("/Library/Frameworks/OpenCL.framework/OpenCL");
     if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so");
+    if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so.1");
+    if(module == 0) module = CLEW_DYNLIB_OPEN("/usr/lib/libOpenCL.so");
+    if(module == 0) module = CLEW_DYNLIB_OPEN("/usr/lib/libOpenCL.so.1");
 
     //  Check for errors
     if (module == NULL)
