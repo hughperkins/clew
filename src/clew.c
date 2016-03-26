@@ -159,13 +159,13 @@ static void clewExit(void)
 
 int clewInit()
 {
-#ifdef _WIN32
-    const char *path = "OpenCL.dll";
-#elif defined(__APPLE__)
-    const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";
-#else
-    const char *path = "libOpenCL.so";
-#endif
+/*#ifdef _WIN32*/
+/*    const char *path = "OpenCL.dll";*/
+/*#elif defined(__APPLE__)*/
+/*    const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";*/
+/*#else*/
+/*    const char *path = "libOpenCL.so";*/
+/*#endif*/
 
     int error = 0;
 
@@ -176,7 +176,9 @@ int clewInit()
     }
 
     //  Load library
-    module = CLEW_DYNLIB_OPEN(path);
+    module = CLEW_DYNLIB_OPEN("OpenCL.dll");
+    if(module == 0) module = CLEW_DYNLIB_OPEN("/Library/Frameworks/OpenCL.framework/OpenCL");
+    if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so");
 
     //  Check for errors
     if (module == NULL)
