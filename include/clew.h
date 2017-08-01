@@ -78,13 +78,13 @@ extern "C" {
     #define CL_API_SUFFIX__VERSION_1_0              AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
     #define CL_EXT_SUFFIX__VERSION_1_0              CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
     #define CL_EXT_SUFFIX__VERSION_1_0_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
-	#define CL_EXT_PREFIX__VERSION_1_0_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
-	#define CL_API_SUFFIX__VERSION_1_1              CL_EXTENSION_WEAK_LINK
-	#define CL_EXT_SUFFIX__VERSION_1_1              CL_EXTENSION_WEAK_LINK
-	#define CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER
-	#define CL_EXT_PREFIX__VERSION_1_1_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER
-	#define CL_API_SUFFIX__VERSION_1_2              CL_EXTENSION_WEAK_LINK
-	#define CL_EXT_SUFFIX__VERSION_1_2              CL_EXTENSION_WEAK_LINK
+    #define CL_EXT_PREFIX__VERSION_1_0_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
+    #define CL_API_SUFFIX__VERSION_1_1              CL_EXTENSION_WEAK_LINK
+    #define CL_EXT_SUFFIX__VERSION_1_1              CL_EXTENSION_WEAK_LINK
+    #define CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER
+    #define CL_EXT_PREFIX__VERSION_1_1_DEPRECATED   CL_EXTENSION_WEAK_LINK AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER
+    #define CL_API_SUFFIX__VERSION_1_2              CL_EXTENSION_WEAK_LINK
+    #define CL_EXT_SUFFIX__VERSION_1_2              CL_EXTENSION_WEAK_LINK
 #else
     #define CL_EXTENSION_WEAK_LINK
     #define CL_API_SUFFIX__VERSION_1_0
@@ -369,7 +369,8 @@ typedef unsigned int cl_GLenum;
 #endif
 
 /* Define basic vector types */
-#if defined( __VEC__ )
+/* Workaround for ppc64el platform: conflicts with bool from C++. */
+#if defined( __VEC__ ) && !(defined(__PPC64__) && defined(__LITTLE_ENDIAN__))
    #include <altivec.h>   /* may be omitted depending on compiler. AltiVec spec provides no way to detect whether the header is required. */
    typedef vector unsigned char     __cl_uchar16;
    typedef vector signed char       __cl_char16;
@@ -1324,7 +1325,6 @@ typedef cl_uint             cl_command_queue_info;
 typedef cl_uint             cl_channel_order;
 typedef cl_uint             cl_channel_type;
 typedef cl_bitfield         cl_mem_flags;
-typedef cl_bitfield         cl_mem_migration_flags;
 typedef cl_uint             cl_mem_object_type;
 typedef cl_uint             cl_mem_info;
 typedef cl_uint             cl_image_info;
@@ -1337,7 +1337,6 @@ typedef cl_uint             cl_program_info;
 typedef cl_uint             cl_program_build_info;
 typedef cl_int              cl_build_status;
 typedef cl_uint             cl_kernel_info;
-typedef cl_uint             cl_kernel_arg_info;
 typedef cl_uint             cl_kernel_work_group_info;
 typedef cl_uint             cl_event_info;
 typedef cl_uint             cl_command_type;
@@ -2429,83 +2428,6 @@ PFNCLCREATEFROMGLTEXTURE)(cl_context      /* context */,
                     cl_GLuint       /* texture */,
                     cl_int *        /* errcode_ret */) CL_API_SUFFIX__VERSION_1_2;
 
-//#ifdef CL_USE_OPENCL_1_2_APIS
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLENQUEUEFILLBUFFER)(
-    cl_command_queue  command_queue ,
-  	cl_mem  buffer ,
-  	const void  *pattern ,
-  	size_t  pattern_size ,
-  	size_t  offset ,
-  	size_t  size ,
-  	cl_uint  num_events_in_wait_list ,
-  	const cl_event  *event_wait_list ,
-  	cl_event  *event ) CL_API_SUFFIX__VERSION_1_2;
-
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLCOMPILEPROGRAM)(
-		cl_program               /*program*/,
-  		cl_uint                  /*num_devices*/,
-  		const cl_device_id *     /*device_list*/,
-  		const char *             /*options*/,
-  		cl_uint                  /*num_input_headers*/,
-  		const cl_program *       /*input_headers*/,
-  		const char **            /*header_include_names*/,
-  		void (CL_CALLBACK *      /*pfn_notify*/) (cl_program /*program*/, void* /*user_data*/),
-  		void *                   /*user_data*/) CL_API_SUFFIX__VERSION_1_2;
-
-typedef CL_API_ENTRY cl_program (CL_API_CALL *PFNCLLINKPROGRAM)(
-		cl_context               /*context*/,
-  		cl_uint                  /*num_devices*/,
-  		const cl_device_id *     /*device_list*/,
-  		const char *             /*options*/,
-  		cl_uint                  /*num_input_programs*/,
-  		const cl_program *       /*input_programs*/,
-  		void (CL_CALLBACK *      /*pfn_notify*/) (cl_program /*program*/, void* /*user_data*/),
-  		void *                   /*user_data*/,
-  		cl_int *                 /*errcode_ret*/) CL_API_SUFFIX__VERSION_1_2;
-
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLGETKERNELARGINFO)(
-		cl_kernel                /*kernel*/ ,
-  		cl_uint                  /*arg_indx*/ ,
-  		cl_kernel_arg_info       /*param_name*/ ,
-  		size_t                   /*param_value_size*/ ,
-  		void  *                  /*param_value*/ ,
-  		size_t  *                /*param_value_size_ret*/ ) CL_API_SUFFIX__VERSION_1_2;
-
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLENQUEUEFILLIMAGE)(
-		cl_command_queue         /*command_queue*/,
-  		cl_mem                   /*image*/,
-  		const void *             /*fill_color*/,
-  		const size_t *           /*origin*/,
-  		const size_t *           /*region*/,
-  		cl_uint                  /*num_events_in_wait_list*/,
-  		const cl_event *         /*event_wait_list*/,
-  		cl_event *               /*event*/) CL_API_SUFFIX__VERSION_1_2;
-
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLENQUEUEMIGRATEMEMOBJECTS)(
-		cl_command_queue         /*command_queue*/ ,
-  		cl_uint                  /*num_mem_objects */,
-  		const cl_mem  *          /*mem_objects*/ ,
-  		cl_mem_migration_flags   /*flags*/ ,
-  		cl_uint                  /*num_events_in_wait_list*/ ,
-  		const cl_event  *        /*event_wait_list*/ ,
-  		cl_event  *              /*event*/ ) CL_API_SUFFIX__VERSION_1_2;
-
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLENQUEUEBARRIERWITHWAITLIST)(
-		cl_command_queue         /*command_queue*/ ,
-  		cl_uint                  /*num_events_in_wait_list*/ ,
-  		const cl_event  *        /*event_wait_list*/ ,
-  		cl_event  *              /*event*/ ) CL_API_SUFFIX__VERSION_1_2;
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLENQUEUEMARKERWITHWAITLIST)(
-		cl_command_queue         /*command_queue*/ ,
- 		cl_uint                  /*num_events_in_wait_list*/ ,
- 		const cl_event  *        /*event_wait_list*/ ,
- 		cl_event  *              /*event*/ ) CL_API_SUFFIX__VERSION_1_2;
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFNCLUNLOADPLATFORMCOMPILER)(
-		cl_platform_id           /*platform*/) CL_API_SUFFIX__VERSION_1_2;
-
-
-//#endif // CL_USE_OPENCL_1_2_APIS
-
 typedef CL_API_ENTRY cl_mem (CL_API_CALL *
 PFNCLCREATEFROMGLRENDERBUFFER)(cl_context   /* context */,
                          cl_mem_flags /* flags */,
@@ -2563,7 +2485,7 @@ PFNCLCREATEFROMGLTEXTURE3D)(cl_context      /* context */,
 #ifdef __APPLE__
 #  pragma GCC diagnostic pop // ignored "-Wignored-attributes"
 #endif
-	
+
 /* cl_khr_gl_sharing extension  */
 
 #define cl_khr_gl_sharing 1
@@ -2598,29 +2520,23 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *clGetGLContextInfoKHR_fn)(
   void *                        param_value,
   size_t *                      param_value_size_ret);
 
-// #define CLEW_STATIC
+#define CLEW_STATIC
 
-#ifdef _WIN32
-  #ifdef clew_STATIC
-  #  define CLEWAPI extern
-  #else
-  #  ifdef clew_EXPORTS
-#pragma message("exporting")
-  #    define CLEWAPI extern __declspec(dllexport)
-  #  else
-#pragma message("importing")
-  #    define CLEWAPI extern __declspec(dllimport)
-  #  endif
-  #endif
-#else
+#ifdef CLEW_STATIC
 #  define CLEWAPI extern
+#else
+#  ifdef CLEW_BUILD
+#    define CLEWAPI extern __declspec(dllexport)
+#  else
+#    define CLEWAPI extern __declspec(dllimport)
+#  endif
 #endif
 
-//#if defined(_WIN32)
-//#define CLEW_FUN_EXPORT extern
-//#else
+#if defined(_WIN32)
+#define CLEW_FUN_EXPORT extern
+#else
 #define CLEW_FUN_EXPORT CLEWAPI
-//#endif
+#endif
 
 #define CLEW_GET_FUN(x) x
 
@@ -2726,18 +2642,6 @@ CLEW_FUN_EXPORT     PFNCLCREATEFROMGLTEXTURE2D          __clewCreateFromGLTextur
 CLEW_FUN_EXPORT     PFNCLCREATEFROMGLTEXTURE3D          __clewCreateFromGLTexture3D         ;
 #endif
 CLEW_FUN_EXPORT     PFNCLGETGLCONTEXTINFOKHR            __clewGetGLContextInfoKHR           ;
-
-//#ifdef CL_USE_OPENCL_1_2_APIS
-CLEW_FUN_EXPORT     PFNCLENQUEUEFILLBUFFER                __clewEnqueueFillBuffer               ;
-CLEW_FUN_EXPORT     PFNCLCOMPILEPROGRAM                 __clewCompileProgram                ;
-CLEW_FUN_EXPORT     PFNCLLINKPROGRAM                    __clewLinkProgram                   ;
-CLEW_FUN_EXPORT     PFNCLGETKERNELARGINFO               __clewGetKernelArgInfo              ;
-CLEW_FUN_EXPORT     PFNCLENQUEUEFILLIMAGE               __clewEnqueueFillImage              ;
-CLEW_FUN_EXPORT     PFNCLENQUEUEMIGRATEMEMOBJECTS       __clewEnqueueMigrateMemObjects      ;
-CLEW_FUN_EXPORT     PFNCLENQUEUEBARRIERWITHWAITLIST     __clewEnqueueBarrierWithWaitList    ;
-CLEW_FUN_EXPORT     PFNCLENQUEUEMARKERWITHWAITLIST      __clewEnqueueMarkerWithWaitList     ;
-CLEW_FUN_EXPORT     PFNCLUNLOADPLATFORMCOMPILER         __clewUnloadPlatformCompiler        ;
-//#endif
 
 #define	clGetPlatformIDs                CLEW_GET_FUN(__clewGetPlatformIDs                )
 #define	clGetPlatformInfo               CLEW_GET_FUN(__clewGetPlatformInfo               )
@@ -2848,31 +2752,68 @@ CLEW_FUN_EXPORT     PFNCLUNLOADPLATFORMCOMPILER         __clewUnloadPlatformComp
 #endif
 #define	clGetGLContextInfoKHR           CLEW_GET_FUN(__clewGetGLContextInfoKHR           )
 
+/* cl_ext */
 
-//#ifdef CL_USE_OPENCL_1_2_APIS
-#define	clEnqueueFillBuffer           CLEW_GET_FUN(__clewEnqueueFillBuffer           )
-#define clCompileProgram                CLEW_GET_FUN(__clewCompileProgram                )
-#define clLinkProgram                   CLEW_GET_FUN(__clewLinkProgram                   )
-#define clGetKernelArgInfo              CLEW_GET_FUN(__clewGetKernelArgInfo              )
-#define clEnqueueFillImage              CLEW_GET_FUN(__clewEnqueueFillImage              )
-#define clEnqueueMigrateMemObjects      CLEW_GET_FUN(__clewEnqueueMigrateMemObjects      )
-#define clEnqueueBarrierWithWaitList    CLEW_GET_FUN(__clewEnqueueBarrierWithWaitList    )
-#define clEnqueueMarkerWithWaitList     CLEW_GET_FUN(__clewEnqueueMarkerWithWaitList     )
-#define clUnloadPlatformCompiler        CLEW_GET_FUN(__clewUnloadPlatformCompiler        )
-//#endif // USE_OPENCL_1_2_APIS
-#define clRetainDevice                  CLEW_GET_FUN(__clewRetainDevice                  )
-#define clReleaseDevice                 CLEW_GET_FUN(__clewReleaseDevice                 )
-#define clCreateSubDevices              CLEW_GET_FUN(__clewCreateSubDevices              )
+/******************************************
+ * cl_nv_device_attribute_query extension *
+ ******************************************/
+/* cl_nv_device_attribute_query extension - no extension #define since it has no functions */
+#define CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV       0x4000
+#define CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV       0x4001
+#define CL_DEVICE_REGISTERS_PER_BLOCK_NV            0x4002
+#define CL_DEVICE_WARP_SIZE_NV                      0x4003
+#define CL_DEVICE_GPU_OVERLAP_NV                    0x4004
+#define CL_DEVICE_KERNEL_EXEC_TIMEOUT_NV            0x4005
+#define CL_DEVICE_INTEGRATED_MEMORY_NV              0x4006
+#define CL_DEVICE_ATTRIBUTE_ASYNC_ENGINE_COUNT_NV   0x4007
+#define CL_DEVICE_PCI_BUS_ID_NV                     0x4008
+#define CL_DEVICE_PCI_SLOT_ID_NV                    0x4009
 
+/*********************************
+ * cl_amd_device_attribute_query *
+ *********************************/
+#define CL_DEVICE_PROFILING_TIMER_OFFSET_AMD        0x4036
+#define CL_DEVICE_TOPOLOGY_AMD                      0x4037
+#define CL_DEVICE_BOARD_NAME_AMD                    0x4038
+#define CL_DEVICE_GLOBAL_FREE_MEMORY_AMD            0x4039
+#define CL_DEVICE_SIMD_PER_COMPUTE_UNIT_AMD         0x4040
+#define CL_DEVICE_SIMD_WIDTH_AMD                    0x4041
+#define CL_DEVICE_SIMD_INSTRUCTION_WIDTH_AMD        0x4042
+#define CL_DEVICE_WAVEFRONT_WIDTH_AMD               0x4043
+#define CL_DEVICE_GLOBAL_MEM_CHANNELS_AMD           0x4044
+#define CL_DEVICE_GLOBAL_MEM_CHANNEL_BANKS_AMD      0x4045
+#define CL_DEVICE_GLOBAL_MEM_CHANNEL_BANK_WIDTH_AMD    0x4046
+#define CL_DEVICE_LOCAL_MEM_SIZE_PER_COMPUTE_UNIT_AMD  0x4047
+#define CL_DEVICE_LOCAL_MEM_BANKS_AMD               0x4048
+#define CL_DEVICE_THREAD_TRACE_SUPPORTED_AMD        0x4049
+#define CL_DEVICE_GFXIP_MAJOR_AMD                   0x404A
+#define CL_DEVICE_GFXIP_MINOR_AMD                   0x404B
+#define CL_DEVICE_AVAILABLE_ASYNC_QUEUES_AMD        0x404C
+
+#ifndef CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD
+#define CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD            1
+
+typedef union
+{
+    struct { cl_uint type; cl_uint data[5]; } raw;
+    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
+} cl_device_topology_amd;
+#endif
+
+/*********************************
+ * cl_arm_printf extension
+ *********************************/
+#define CL_PRINTF_CALLBACK_ARM                      0x40B0
+#define CL_PRINTF_BUFFERSIZE_ARM                    0x40B1
 
 #define CLEW_SUCCESS                0       //!<    Success error code
 #define CLEW_ERROR_OPEN_FAILED      -1      //!<    Error code for failing to open the dynamic library
 #define CLEW_ERROR_ATEXIT_FAILED    -2      //!<    Error code for failing to queue the closing of the dynamic library to atexit()
 
 //! \brief Load OpenCL dynamic library and set function entry points
-CLEW_FUN_EXPORT int         clewInit        (void);
+int         clewInit        (void);
 //! \brief Convert an OpenCL error code to its string equivalent
-CLEW_FUN_EXPORT const char* clewErrorString (cl_int error);
+const char* clewErrorString (cl_int error);
 
 #ifdef __cplusplus
 }

@@ -15,7 +15,7 @@
 
     typedef HMODULE             CLEW_DYNLIB_HANDLE;
 
-    #define CLEW_DYNLIB_OPEN    LoadLibrary
+    #define CLEW_DYNLIB_OPEN    LoadLibraryA
     #define CLEW_DYNLIB_CLOSE   FreeLibrary
     #define CLEW_DYNLIB_IMPORT  GetProcAddress
 #else
@@ -109,15 +109,6 @@ PFNCLENQUEUENDRANGEKERNEL           __clewEnqueueNDRangeKernel          = NULL;
 PFNCLENQUEUETASK                    __clewEnqueueTask                   = NULL;
 PFNCLENQUEUENATIVEKERNEL            __clewEnqueueNativeKernel           = NULL;
 
-PFNCLENQUEUEFILLBUFFER            __clewEnqueueFillBuffer           = NULL;
-PFNCLCOMPILEPROGRAM                 __clewCompileProgram                = NULL;
-PFNCLLINKPROGRAM                    __clewLinkProgram                   = NULL;
-PFNCLGETKERNELARGINFO               __clewGetKernelArgInfo              = NULL;
-PFNCLENQUEUEFILLIMAGE               __clewEnqueueFillImage              = NULL;
-PFNCLENQUEUEMIGRATEMEMOBJECTS       __clewEnqueueMigrateMemObjects      = NULL;
-PFNCLENQUEUEBARRIERWITHWAITLIST     __clewEnqueueBarrierWithWaitList    = NULL;
-PFNCLENQUEUEMARKERWITHWAITLIST      __clewEnqueueMarkerWithWaitList     = NULL;
-PFNCLUNLOADPLATFORMCOMPILER         __clewUnloadPlatformCompiler        = NULL;
 
 
 PFNCLGETEXTENSIONFUNCTIONADDRESSFORPLATFORM __clewGetExtensionFunctionAddressForPlatform = NULL;
@@ -146,6 +137,17 @@ PFNCLCREATEFROMGLTEXTURE3D          __clewCreateFromGLTexture3D         = NULL;
 #endif
 PFNCLGETGLCONTEXTINFOKHR            __clewGetGLContextInfoKHR           = NULL;
 
+static CLEW_DYNLIB_HANDLE dynamic_library_open_find(const char **paths) {
+  int i = 0;
+  while (paths[i] != NULL) {
+      CLEW_DYNLIB_HANDLE lib = CLEW_DYNLIB_OPEN(paths[i]);
+      if (lib != NULL) {
+        return lib;
+      }
+      ++i;
+  }
+  return NULL;
+}
 
 static void clewExit(void)
 {
@@ -159,13 +161,17 @@ static void clewExit(void)
 
 int clewInit()
 {
-/*#ifdef _WIN32*/
-/*    const char *path = "OpenCL.dll";*/
-/*#elif defined(__APPLE__)*/
-/*    const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";*/
-/*#else*/
-/*    const char *path = "libOpenCL.so";*/
-/*#endif*/
+#ifdef _WIN32
+    const char *paths[] = {"OpenCL.dll", NULL};
+#elif defined(__APPLE__)
+    const char *paths[] = {"/Library/Frameworks/OpenCL.framework/OpenCL", NULL};
+#else
+    const char *paths[] = {"libOpenCL.so",
+                           "libOpenCL.so.0",
+                           "libOpenCL.so.1",
+                           "libOpenCL.so.2",
+                           NULL};
+#endif
 
     int error = 0;
 
@@ -176,12 +182,7 @@ int clewInit()
     }
 
     //  Load library
-    module = CLEW_DYNLIB_OPEN("OpenCL.dll");
-    if(module == 0) module = CLEW_DYNLIB_OPEN("/Library/Frameworks/OpenCL.framework/OpenCL");
-    if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so");
-    if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so.1");
-    if(module == 0) module = CLEW_DYNLIB_OPEN("/usr/lib/libOpenCL.so");
-    if(module == 0) module = CLEW_DYNLIB_OPEN("/usr/lib/libOpenCL.so.1");
+    module = dynamic_library_open_find(paths);
 
     //  Check for errors
     if (module == NULL)
@@ -222,7 +223,7 @@ int clewInit()
     __clewSetCommandQueueProperty       = (PFNCLSETCOMMANDQUEUEPROPERTY     )CLEW_DYNLIB_IMPORT(module, "clSetCommandQueueProperty");
 #endif
     __clewCreateBuffer                  = (PFNCLCREATEBUFFER                )CLEW_DYNLIB_IMPORT(module, "clCreateBuffer");
-    __clewCreateSubBuffer               = (PFNCLCREATESUBBUFFER             )CLEW_DYNLIB_IMPORT(module, "clCreateBuffer");
+    __clewCreateSubBuffer               = (PFNCLCREATESUBBUFFER             )CLEW_DYNLIB_IMPORT(module, "clCreateSubBuffer");
     __clewCreateImage                   = (PFNCLCREATEIMAGE                 )CLEW_DYNLIB_IMPORT(module, "clCreateImage");
     __clewRetainMemObject               = (PFNCLRETAINMEMOBJECT             )CLEW_DYNLIB_IMPORT(module, "clRetainMemObject");
     __clewReleaseMemObject              = (PFNCLRELEASEMEMOBJECT            )CLEW_DYNLIB_IMPORT(module, "clReleaseMemObject");
@@ -305,19 +306,6 @@ int clewInit()
     #endif
     __clewGetGLContextInfoKHR           = (PFNCLGETGLCONTEXTINFOKHR         )CLEW_DYNLIB_IMPORT(module, "clGetGLContextInfoKHR");
 
-//    #ifdef CL_USE_OPENCL_1_2_APIS
-    __clewEnqueueFillBuffer                = (PFNCLENQUEUEFILLBUFFER              )CLEW_DYNLIB_IMPORT(module, "clEnqueueFillBuffer");
-    __clewCompileProgram                = (PFNCLCOMPILEPROGRAM              )CLEW_DYNLIB_IMPORT(module, "clCompileProgram");
-    __clewLinkProgram                   = (PFNCLLINKPROGRAM                 )CLEW_DYNLIB_IMPORT(module, "clLinkProgram");
-    __clewGetKernelArgInfo              = (PFNCLGETKERNELARGINFO            )CLEW_DYNLIB_IMPORT(module, "clGetKernelArgInfo");
-    __clewEnqueueFillImage              = (PFNCLENQUEUEFILLIMAGE            )CLEW_DYNLIB_IMPORT(module, "clEnqueueFillImage");
-    __clewEnqueueMigrateMemObjects      = (PFNCLENQUEUEMIGRATEMEMOBJECTS    )CLEW_DYNLIB_IMPORT(module, "clEnqueueMigrateMemObjects");
-    __clewEnqueueBarrierWithWaitList    = (PFNCLENQUEUEBARRIERWITHWAITLIST  )CLEW_DYNLIB_IMPORT(module, "clEnqueueBarrierWithWaitList");
-    __clewEnqueueMarkerWithWaitList     = (PFNCLENQUEUEMARKERWITHWAITLIST   )CLEW_DYNLIB_IMPORT(module, "clEnqueueMarkerWithWaitList");
-    __clewUnloadPlatformCompiler        = (PFNCLUNLOADPLATFORMCOMPILER      )CLEW_DYNLIB_IMPORT(module, "clUnloadPlatformCompiler");
-
- //   #endif
-
 
     if(__clewGetPlatformIDs == NULL) return 0;
     if(__clewGetPlatformInfo == NULL) return 0;
@@ -326,7 +314,6 @@ int clewInit()
 
     return CLEW_SUCCESS;
 }
-
 
 const char* clewErrorString(cl_int error)
 {
@@ -405,6 +392,16 @@ const char* clewErrorString(cl_int error)
         , "CL_INVALID_LINKER_OPTIONS"                   //  -67
         , "CL_INVALID_DEVICE_PARTITION_COUNT"           //  -68
     };
+
+    static const int num_errors = sizeof(strings) / sizeof(strings[0]);
+
+    if (error == -1001) {
+        return "CL_PLATFORM_NOT_FOUND_KHR";
+    }
+
+    if (error > 0 || -error >= num_errors) {
+        return "Unknown OpenCL error";
+    }
 
     return strings[-error];
 }
