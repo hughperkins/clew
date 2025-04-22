@@ -29,6 +29,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
 
 //! \brief module handle
 static CLEW_DYNLIB_HANDLE module = NULL;
@@ -176,8 +177,10 @@ int clewInit()
     }
 
     //  Load library
+    printf("loading OpenCL library...\n");
     module = CLEW_DYNLIB_OPEN("OpenCL.dll");
     if(module == 0) module = CLEW_DYNLIB_OPEN("/Library/Frameworks/OpenCL.framework/OpenCL");
+    if(module == 0) module = CLEW_DYNLIB_OPEN("/System/Library/Frameworks/OpenCL.framework/OpenCL");
     if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so");
     if(module == 0) module = CLEW_DYNLIB_OPEN("libOpenCL.so.1");
     if(module == 0) module = CLEW_DYNLIB_OPEN("/usr/lib/libOpenCL.so");
@@ -186,8 +189,10 @@ int clewInit()
     //  Check for errors
     if (module == NULL)
     {
+        printf("Failed to load opencl\n");
         return CLEW_ERROR_OPEN_FAILED;
     }
+    printf("loaded opencl\n");
 
     //  Set unloading
     error = atexit(clewExit);

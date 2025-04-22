@@ -226,6 +226,7 @@ typedef double                  cl_double;
 
 #else
 
+#include <sys/types.h>
 #include <stdint.h>
 
 /* scalar types  */
